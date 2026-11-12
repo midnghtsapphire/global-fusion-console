@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://global-fusion-digest.local/schemas/analysis.schema.json",
+  "type": "object",
+  "required": ["generated_at_utc", "catalog_version", "catalog_release_date", "catalog_entry_count", "severity_counts", "recent_kev", "ics_advisories", "official_ic3_items", "source_status", "source_items", "collection_status"],
+  "properties": {
+    "generated_at_utc": { "type": "string", "format": "date-time" },
+    "catalog_version": { "type": "string", "minLength": 1 },
+    "catalog_release_date": { "type": "string", "format": "date-time" },
+    "catalog_entry_count": { "type": "integer", "minimum": 1 },
+    "collection_status": { "enum": ["ok", "degraded"] },
+    "severity_counts": {
+      "type": "object", "required": ["Critical", "High", "Anomaly", "Medium", "Low"],
+      "additionalProperties": false,
+      "properties": {
+        "Critical": { "type": "integer", "minimum": 0 }, "High": { "type": "integer", "minimum": 0 },
+        "Anomaly": { "type": "integer", "minimum": 0 }, "Medium": { "type": "integer", "minimum": 0 }, "Low": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "recent_kev": { "type": "array", "items": { "$ref": "#/definitions/kev" } },
+    "ics_advisories": { "type": "array", "items": { "$ref": "#/definitions/advisory" } },
+    "official_ic3_items": { "type": "array", "items": { "$ref": "#/definitions/advisory" } },
+    "cisa_cyber_advisories": { "type": "array", "items": { "$ref": "#/definitions/advisory" } },
+    "source_status": { "type": "array", "items": {
+      "type": "object", "required": ["name", "url", "status", "retrieved_at"],
+      "properties": {
+        "name": { "type": "string" }, "url": { "type": "string", "format": "uri" },
+        "status": { "enum": ["ok", "error", "skipped"] }, "retrieved_at": { "type": "string", "format": "date-time" }, "error": { "type": "string" }
+      }
+    } },
+    "source_items": { "type": "array", "items": {
+      "type": "object", "required": ["name", "url", "retrieved_at", "sha256", "excerpt"],
+      "properties": {
+        "name": { "type": "string" }, "url": { "type": "string", "format": "uri" },
+        "retrieved_at": { "type": "string", "format": "date-time" }, "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "excerpt": { "type": "string" }
+      }
+    } }
+  },
+  "definitions": {
+    "priority": { "enum": ["Critical", "High", "Anomaly", "Medium", "Low"] },
+    "cves": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^CVE-[0-9]{4}-[0-9]{4,}$" } },
+    "kev": {
+      "type": "object", "required": ["cve", "vendor", "product", "name", "date_added", "due_date", "description", "required_action", "operational_priority", "priority_rationale", "source"],
+      "properties": {
+        "cve": { "type": "string", "pattern": "^CVE-[0-9]{4}-[0-9]{4,}$" }, "vendor": { "type": "string" }, "product": { "type": "string" }, "name": { "type": "string" },
+        "date_added": { "type": "string", "format": "date" }, "due_date": { "type": "string", "format": "date" }, "description": { "type": "string" }, "required_action": { "type": "string" },
+        "operational_priority": { "$ref": "#/definitions/priority" }, "priority_rationale": { "type": "string" }, "source": { "type": "string", "format": "uri" }
+      }
+    },
+    "advisory": {
+      "type": "object", "required": ["title", "date", "source", "summary", "severity", "cves"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 }, "date": { "type": "string", "format": "date" }, "source": { "type": "string", "format": "uri" }, "summary": { "type": "string", "minLength": 1 },
+        "severity": { "$ref": "#/definitions/priority" }, "cves": { "$ref": "#/definitions/cves" }
+      }
+    }
+  }
+}
